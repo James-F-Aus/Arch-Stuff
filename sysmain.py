@@ -11,7 +11,6 @@ def up_choice(x):
         result = run_cmd(upgrade_commands[x])
         print(result.stdout)
     except subprocess.CalledProcessError as exc:
-        # Why: ensures you see terminal error output instead of silent failures
         print("Command failed:", exc.stderr)
 
 def main_choice(x):
@@ -20,25 +19,24 @@ def main_choice(x):
         result = run_cmd(maintenence_commands[x])
         print(result.stdout)
     except subprocess.CalledProcessError as exc:
-        # Why: ensures you see terminal error output instead of silent failures
         print("Command failed:", exc.stderr)
 
 def del_orphans_safe():
         
-        #Safely handles the two-step removal of orphaned packages.
+        #removal of orphaned packages.
         #1. Gets the list of orphans.
         #2. Runs pacman to remove them.
         
     print("\n--- Starting safe removal of orphaned packages ---\n")
     try:
-        # Step 1: Get the list of orphaned packages
+        #Get the list of orphaned packages
         print("1/2: Checking for orphaned packages...")
         
-        # We need the output of this command, so capture_output=True and check=False initially
+        # need the output of this command, so capture_output=True and check=False initially
         orphan_list_cmd = ["pacman", "-Qtdq"]
         result = subprocess.run(orphan_list_cmd, capture_output=True, text=True, check=False)
         
-        # The list of packages is in stdout, split by newline
+        # The list of packages is in stdout
         orphaned_packages = result.stdout.split()
 
         if not orphaned_packages:
@@ -51,17 +49,17 @@ def del_orphans_safe():
         # Build the final removal command
         removal_cmd = ["sudo", "pacman", "-Rns"] + orphaned_packages
         
-        # Run the removal command, allowing interactive streaming
+        # Run the removal command
         subprocess.run(
             removal_cmd,
             check=True,
-            capture_output=False, # Stream output for password prompt/confirmation
+            capture_output=False,
             text=True,
             stdin=sys.stdin,
         )
         print("\n--- Orphaned package removal complete ---\n")
     except subprocess.CalledProcessError as exc:
-        # Check failed usually means a pacman error (e.g., failed dependency check)
+        # Check failed usually means a pacman error
         print(f"\n--- Removal Failed: Pacman error code {exc.returncode} ---")
         if exc.stderr:
             print("Pacman Error Details:", exc.stderr)
